@@ -7,9 +7,11 @@ from app.database import get_db, delete_user
 router = APIRouter()
 
 class UserCreate(BaseModel):
+    nom: str
+    prenom: str
     username: str
     password: str
-
+    
 
 class UserLogin(BaseModel):
     username: str
@@ -19,22 +21,24 @@ class UserLogin(BaseModel):
 def register(user: UserCreate):
     db = get_db()
     cur = db.cursor()
-
-    cur.execute(
-        "SELECT id FROM users WHERE username=%s",
-        (user.username,)
-    )
+    
+    cur.execute("SELECT id FROM users WHERE nom=%s", (user.nom,))
     if cur.fetchone():
-        raise HTTPException(status_code=400, detail="Utilisateur déjà existant")
+        cur.execute("SELECT id FROM users WHERE prenom=%s", (user.prenom,))
+        if cur.fetchone():
+            raise HTTPException(400, "Vous êtes déjà inscrit")
+
+    cur.execute("SELECT id FROM users WHERE username=%s", (user.username,))
+    if cur.fetchone():
+        raise HTTPException(400, "Nom d'utilisateur déjà pris")
 
     hashed_password = hash_password(user.password)
 
     cur.execute(
-        "INSERT INTO users (username, password) VALUES (%s, %s)",
-        (user.username, hashed_password)
+        "INSERT INTO users (nom, prenom, username, password) VALUES (%s, %s, %s, %s)",
+        (user.nom, user.prenom, user.username, hashed_password)
     )
     db.commit()
-
     return {"message": "utilisateur créé"}
 
 
