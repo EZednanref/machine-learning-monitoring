@@ -1,15 +1,20 @@
 # machine-learning-monitoring
+
 Projet final de cours de microservices.
 
 ## Structure du projet
+
 ```
 machine-learning-monitoring/
 ├── backend/
-│   ├── app/
-│   │   └── main.py
-│   ├── requirements.txt
+│   ├── app/ <- Service backend principal
+│   │   ├── main.py
+    │   ├── auth.py
+    │   ├── security.py
+    │   └── database.py
+    ├── requirements.txt
 │   └── Dockerfile
-├── trainer/
+├── trainer/ <- Service du training des modèles
 │   ├── train.py
 │   ├── metrics.py
 │   └── Dockerfile
@@ -25,5 +30,5 @@ machine-learning-monitoring/
 ```
 
 ## gif du sinje
-![](gif.gif)
 
+![](gif.gif)
