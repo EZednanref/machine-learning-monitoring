@@ -4,37 +4,24 @@ Projet final de cours de microservices.
 ## Structure du projet
 ```
 machine-learning-monitoring/
-├── docker-compose.yml
-├── .env
-├── README.md
-
+├── backend/
+│   ├── app/
+│   │   └── main.py
+│   ├── requirements.txt
+│   └── Dockerfile
+├── trainer/
+│   ├── train.py
+│   ├── metrics.py
+│   └── Dockerfile
+├── kafka/
+│   └── docker-compose.kafka.yml
+├── database/
+│   ├── init.sql
+│   └── Dockerfile
 ├── frontend/
 │   ├── Dockerfile
 │   └── src/
-│       ├── login.html
-│       ├── dashboard.html
-│       └── app.js
-
-├── backend/
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── main.py
-
-├── trainer/
-│   ├── Dockerfile
-│   ├── train.py
-│   └── metrics.py
-
-├── kafka/
-│   └── topics.sh
-
-├── database/
-│   └── init.sql
-
-├── datasets/
-│   ├── cifar100/
-│   └── fashion_mnist/
-
+└── docker-compose.yml
 ```
 
 ## gif du sinje
