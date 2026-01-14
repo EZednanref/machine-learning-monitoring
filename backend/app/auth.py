@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 from app.security import verify_password, create_access_token, hash_password
 from app.database import get_db, delete_user
+from fastapi import Response
 
 router = APIRouter()
 
@@ -41,9 +42,8 @@ def register(user: UserCreate):
     db.commit()
     return {"message": "utilisateur créé"}
 
-
 @router.post("/connexion")
-def login(user: UserLogin):
+def login(user: UserLogin, response: Response):
     db = get_db()
     cur = db.cursor()
 
@@ -58,7 +58,9 @@ def login(user: UserLogin):
 
     token = create_access_token({"sub": user.username,"role": row[1]})
 
-    return {"access_token": token}
+    response.set_cookie(key="access_token", value=token, httponly=True, secure=False, samesite="lax", path="/")
+
+    return {"message": "Connecté"}
 
 
 @router.post("/suppression")
@@ -68,4 +70,8 @@ def suppr(user: UserLogin):
     if not rs:
         return {"message": "erreur lors de la suppression de l'utilisateur"}
     return {"message": "utilisateur supprimé"}
+    
+
+
+
     
