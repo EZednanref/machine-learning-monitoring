@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from app.security import verify_password, create_access_token, hash_password
 from app.database import get_db, delete_user
 
-router = APIRouter()
+auth_router = APIRouter()
 
 class UserCreate(BaseModel):
     nom: str
@@ -17,7 +17,7 @@ class UserLogin(BaseModel):
     username: str
     password: str
 
-@router.post("/inscription")
+@auth_router.post("/inscription")
 def register(user: UserCreate):
     db = get_db()
     cur = db.cursor()
@@ -42,7 +42,7 @@ def register(user: UserCreate):
     return {"message": "utilisateur créé"}
 
 
-@router.post("/connexion")
+@auth_router.post("/connexion")
 def login(user: UserLogin):
     db = get_db()
     cur = db.cursor()
@@ -61,7 +61,7 @@ def login(user: UserLogin):
     return {"access_token": token}
 
 
-@router.post("/suppression")
+@auth_router.post("/suppression")
 def suppr(user: UserLogin):
     db = get_db()
     rs = delete_user(user.username, db)    
