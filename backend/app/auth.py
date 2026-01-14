@@ -5,17 +5,23 @@ from app.database import get_db
 router = APIRouter()
 
 @router.post("/inscription")
-def register(username: str, password: str):
+def register(nom: str, prenom: str, username: str, password: str):
     db = get_db()
     cur = db.cursor()
 
+    cur.execute("SELECT id FROM users WHERE nom=%s", (nom,))
+    if cur.fetchone():
+        cur.execute("SELECT id FROM users WHERE prenom=%s", (prenom,))
+        if cur.fetchone():
+            raise HTTPException(400, "Vous êtes déjà inscrit")
+
     cur.execute("SELECT id FROM users WHERE username=%s", (username,))
     if cur.fetchone():
-        raise HTTPException(400, "Utilisateur déjà existant")
+        raise HTTPException(400, "Nom d'utilisateur déjà pris")
 
     cur.execute(
-        "INSERT INTO users (username, password) VALUES (%s, %s)",
-        (username, password)
+        "INSERT INTO users (nom, prenom, username, password) VALUES (%s, %s, %s, %s)",
+        (nom, prenom, username, password)
     )
     db.commit()
     return {"message": "utilisateur créé"}
