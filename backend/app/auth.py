@@ -1,44 +1,71 @@
 from fastapi import APIRouter, HTTPException
-from app.security import verify_password, create_access_token
-from app.database import get_db
+from pydantic import BaseModel
+
+from app.security import verify_password, create_access_token, hash_password
+from app.database import get_db, delete_user
 
 router = APIRouter()
 
+class UserCreate(BaseModel):
+    nom: str
+    prenom: str
+    username: str
+    password: str
+    
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
 @router.post("/inscription")
-def register(nom: str, prenom: str, username: str, password: str):
+def register(user: UserCreate):
     db = get_db()
     cur = db.cursor()
-
-    cur.execute("SELECT id FROM users WHERE nom=%s", (nom,))
+    
+    cur.execute("SELECT id FROM users WHERE nom=%s", (user.nom,))
     if cur.fetchone():
-        cur.execute("SELECT id FROM users WHERE prenom=%s", (prenom,))
+        cur.execute("SELECT id FROM users WHERE prenom=%s", (user.prenom,))
         if cur.fetchone():
             raise HTTPException(400, "Vous êtes déjà inscrit")
 
-    cur.execute("SELECT id FROM users WHERE username=%s", (username,))
+    cur.execute("SELECT id FROM users WHERE username=%s", (user.username,))
     if cur.fetchone():
         raise HTTPException(400, "Nom d'utilisateur déjà pris")
 
+    hashed_password = hash_password(user.password)
+
     cur.execute(
         "INSERT INTO users (nom, prenom, username, password) VALUES (%s, %s, %s, %s)",
-        (nom, prenom, username, password)
+        (user.nom, user.prenom, user.username, hashed_password)
     )
     db.commit()
     return {"message": "utilisateur créé"}
 
+
 @router.post("/connexion")
-def login(username: str, password: str):
+def login(user: UserLogin):
     db = get_db()
     cur = db.cursor()
 
     cur.execute(
         "SELECT password, role FROM users WHERE username=%s",
-        (username,)
+        (user.username,)
     )
-    user = cur.fetchone()
-    if not user or not verify_password(password, user[0]):
-        raise HTTPException(401, "mauvaises infos de connexion")
+    row = cur.fetchone()
 
-    token = create_access_token({"sub": username, "role": user[1]})
+    if not row or not verify_password(user.password, row[0]):
+        raise HTTPException(status_code=401, detail="mauvaises infos de connexion")
+
+    token = create_access_token({"sub": user.username,"role": row[1]})
+
     return {"access_token": token}
 
+
+@router.post("/suppression")
+def suppr(user: UserLogin):
+    db = get_db()
+    rs = delete_user(user.username, db)    
+    if not rs:
+        return {"message": "erreur lors de la suppression de l'utilisateur"}
+    return {"message": "utilisateur supprimé"}
+    
